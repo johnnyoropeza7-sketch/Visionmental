@@ -55,7 +55,7 @@ label.f input{display:none}
 <div class="card">
 <div class="row"><b>Mirada</b><select id="mode"><option value="sim">Simulador (dedo)</option><option value="cam">Cámara (mirada real)</option></select></div>
 <div class="row">Tiempo fijo: <b id="dv">3</b> s <input type="range" id="dw" min="2" max="8" step="0.5" value="3"></div>
-<div class="row"><button id="cam">Activar cámara</button><button class="g" id="cb">Calibrar</button></div>
+<div class="row"><button id="cam">Activar cámara</button><button class="g" id="cb">Calibrar</button><button class="g" id="pb">Ver mirada</button></div>
 <small id="stat"></small>
 </div>
 <div class="card">
@@ -100,7 +100,7 @@ grid.addEventListener("pointerup",e=>{const dx=e.clientX-st.sx;rel();if(Math.abs
 grid.addEventListener("pointercancel",rel);
 function toast(t){const o=$("toast");o.textContent=t;o.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>o.style.opacity=0,4000)}
 function say(t){if(!st.voz||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
-$("close").onclick=()=>{let b=st.sel,m=0;if(b===null){b=-1;for(const k in st.dw){if(st.dw[k]>m){m=st.dw[k];b=+k}}}
+$("close").onclick=()=>{if(st.mode==="cam"&&!camOn){const t="La cámara no está activa.";toast(t);say(t);return}let b=st.sel,m=0;if(b===null){b=-1;for(const k in st.dw){if(st.dw[k]>m){m=st.dw[k];b=+k}}}
 const t=b<0?"No detecté ninguna mirada en esta página.":"Página "+(st.p+1)+", imagen "+(b+1)+", "+cap(st.p,b)+".";toast(t);say(t)};
 document.addEventListener("touchstart",e=>{if(e.touches.length>=3){e.preventDefault();openSet()}},{passive:false});
 function openSet(){rel();$("set").style.display="block";$("ep").value=st.p+1;slots();stat()}
@@ -129,15 +129,18 @@ const idbLoad=()=>new Promise(res=>{try{if(!db)return res();const q=db.transacti
 let gzLoaded=false,camOn=false;
 function loadGaze(urls){const u=urls.shift();if(!u){stat();return}const s=document.createElement("script");s.src=u;s.onload=()=>{gzLoaded=!!window.webgazer;stat()};s.onerror=()=>loadGaze(urls);document.head.appendChild(s)}
 loadGaze(["https://webgazer.cs.brown.edu/webgazer.js","https://cdn.jsdelivr.net/npm/webgazer@2.1.0/dist/webgazer.js"]);
-function stat(){$("stat").textContent=!gzLoaded?"Cámara no disponible en esta vista. Funciona al abrir la app desde tu dirección de GitHub (HTTPS). Mientras tanto usa el simulador.":camOn?"Cámara activa. Calibra con la persona antes de empezar.":"Pulsa Activar cámara y luego Calibrar.";}
+function stat(){$("stat").textContent=!gzLoaded?"Cámara no disponible en esta vista. Funciona al abrir la app desde tu dirección de GitHub (HTTPS). Mientras tanto usa el simulador.":camOn?"Cámara activa. Muestras de mirada: "+(st.n||0)+". Si el número no sube, la cámara no está detectando el rostro.":"Pulsa Activar cámara y luego Calibrar.";}
+function nearCell(x,y){const r=grid.getBoundingClientRect();if(!r.width)return null;const cx=Math.min(1,Math.max(0,(x-r.left)/r.width)),cy=Math.min(1,Math.max(0,(y-r.top)/r.height));return Math.min(2,Math.floor(cy*3))*2+Math.min(1,Math.floor(cx*2))}
 $("cam").onclick=async()=>{if(!gzLoaded){stat();return}
-try{webgazer.setRegression("ridge").saveDataAcrossSessions(true).setGazeListener(d=>{if(!d||st.mode!=="cam")return;const el=document.elementFromPoint(d.x,d.y),c=el&&el.closest?el.closest(".c"):null;sample(c?+c.dataset.i:null,performance.now())});
+try{webgazer.setRegression("ridge").saveDataAcrossSessions(true).setGazeListener(d=>{if(!d)return;st.n=(st.n||0)+1;if(st.mode!=="cam"||$("set").style.display==="block")return;sample(nearCell(d.x,d.y),performance.now())});
 await webgazer.begin();webgazer.showVideoPreview(false).showPredictionPoints(false).showFaceOverlay(false).showFaceFeedbackBox(false);camOn=true;st.mode="cam";$("mode").value="cam";sv("mm_mode","cam");stat()}
 catch(e){$("stat").textContent="No se pudo activar la cámara. Revisa el permiso en Ajustes de Safari."}};
 $("cb").onclick=()=>{if(!camOn){$("stat").textContent="Primero pulsa Activar cámara.";return}
 const o=$("cal");o.querySelectorAll(".dot").forEach(d=>d.remove());o.style.display="block";let left=9;
 [15,50,85].forEach(y=>[15,50,85].forEach(x=>{const d=document.createElement("div");d.className="dot";d.style.left=x+"%";d.style.top=y+"%";let n=0;
 d.onclick=()=>{n++;d.style.opacity=1-n*.17;if(n>=5){d.remove();if(--left===0){o.style.display="none";toast("Calibración lista")}}};o.appendChild(d)}))};
+$("pb").onclick=()=>{if(!camOn){$("stat").textContent="Primero pulsa Activar cámara.";return}webgazer.showPredictionPoints(true);setTimeout(()=>webgazer.showPredictionPoints(false),15000)};
+setInterval(()=>{if($("set").style.display==="block")stat()},1000);
 render();stat();idbOpen().then(idbLoad).then(render);
 </script>
 </body></html>
