@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Visión Mental">
+<title>Visión Mental</title>
+<style>
+:root{--bg:#f5f5f7;--fg:#1d1d1f;--card:#fff;--mut:#6e6e73;--ac:#7b3fe4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0818;--fg:#f2f2f4;--card:#1b1228;--mut:#a49bb5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e0818;--fg:#f2f2f4;--card:#1b1228;--mut:#a49bb5;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#app{height:100%;display:flex;flex-direction:column;padding:6px 10px}
+header{display:flex;align-items:center;gap:10px;padding:2px 2px 8px}
+header img{width:36px;height:36px;border-radius:9px}
+#tt{flex:1;line-height:1.1}#tt b{font-size:16px;display:block}#tt small{font-size:11px;color:var(--mut)}
+#pg{font-size:12px;color:var(--mut);margin-right:4px}
+button{font:inherit;border:0;border-radius:10px;padding:8px 14px;background:var(--ac);color:#fff;font-weight:600}
+button.g{background:var(--card);color:var(--fg);border:1px solid var(--mut)}
+#grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:8px;touch-action:pan-y}
+.c{background:var(--card);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:0;border:3px solid transparent}
+.c.on{border-color:#ffd36b}
+.c img{flex:1;min-height:0;width:100%;object-fit:cover;pointer-events:none;display:block}
+.c span{font-size:13px;font-weight:600;text-align:center;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:70}
+#set{position:fixed;inset:0;background:var(--bg);overflow:auto;display:none;padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(24px + env(safe-area-inset-bottom,0px));box-sizing:border-box;-webkit-user-select:auto;user-select:auto;z-index:20}
+#set h2{margin:0 0 10px;font-size:20px}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.card{background:var(--card);border-radius:12px;padding:10px;margin:10px 0}
+input[type=text],input[type=number],select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--mut);background:var(--bg);color:var(--fg);min-width:0}
+input[type=text]{flex:1}input[type=range]{flex:1}
+small{color:var(--mut)}
+label.f{background:var(--card);color:var(--ac);border:1px solid var(--ac);border-radius:10px;padding:7px 10px;font-weight:600;font-size:14px}
+label.f input{display:none}
+.th{width:44px;height:44px;border-radius:8px;object-fit:cover}
+#cal{position:fixed;inset:0;background:rgba(10,5,20,.94);display:none;z-index:60;color:#fff}
+#cal p{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:0;right:0;text-align:center;font-size:13px;margin:0;padding:0 16px}
+.dot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:radial-gradient(#fff,#7df9ff 40%,#7b3fe4)}
+</style></head>
+<body>
+<div id="app">
+<header><img id="lg" alt=""><div id="tt"><b>Visión Mental</b><small>por el Mago Camilo</small></div><span id="pg"></span><button id="close">Cerrar</button></header>
+<div id="grid"></div>
+</div>
+<div id="toast"></div>
+<div id="cal"><p>Mira cada punto y tócalo 5 veces mientras lo miras.</p></div>
+<div id="set">
+<h2>Configuración</h2>
+<div class="card">
+<div class="row"><label><input type="checkbox" id="vz" checked> Voz activada</label></div>
+<div class="row"><select id="lang"><option value="es-ES">Español (España)</option><option value="es-MX">Español (México)</option><option value="es-US">Español (EE. UU.)</option></select><button class="g" id="test">Probar audio</button></div>
+<small>La voz sale por el audio activo del iPhone. Conecta tu audífono Bluetooth en Ajustes del iPhone.</small>
+</div>
+<div class="card">
+<div class="row"><b>Mirada</b><select id="mode"><option value="sim">Simulador (dedo)</option><option value="cam">Cámara (mirada real)</option></select></div>
+<div class="row">Tiempo fijo: <b id="dv">3</b> s <input type="range" id="dw" min="2" max="8" step="0.5" value="3"></div>
+<div class="row"><button id="cam">Activar cámara</button><button class="g" id="cb">Calibrar</button></div>
+<small id="stat"></small>
+</div>
+<div class="card">
+<div class="row"><b>Editar página</b> <input type="number" id="ep" min="1" max="50" value="1" style="width:70px"></div>
+<div id="slots"></div>
+<small>Tus imágenes se reducen y se guardan en este teléfono.</small>
+</div>
+<div class="row"><button id="sc">Listo</button></div>
+</div>
+<script>
+const N=50,S=6;
+const F=[["🍕","Pizza"],["🍣","Sushi"],["🍩","Dona"],["🍓","Fresas"],["🌮","Tacos"],["🍦","Helado"],["🍔","Hamburguesa"],["🍰","Pastel"],["🥐","Cruasán"],["🍜","Ramen"],["🍉","Sandía"],["🍝","Espaguetis"],["🥑","Aguacate"],["🍤","Camarones"],["🧁","Cupcake"],["🍇","Uvas"]];
+const M=[["🗼","Torre Eiffel"],["🗽","Estatua de la Libertad"],["🏛️","Partenón"],["🗿","Moái"],["🏰","Castillo"],["⛩️","Templo japonés"],["🕌","Mezquita"],["🌉","Puente"],["🏯","Castillo japonés"],["⛪","Catedral"],["🌋","Volcán"],["🏔️","Montaña"],["🏝️","Isla"],["🌅","Atardecer"],["🎆","Fuegos artificiales"],["🌈","Arcoíris"]];
+const E=[];for(let i=0;i<16;i++){E.push(F[i],M[i])}
+const LOGO='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="b" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#6a2fb8"/><stop offset="1" stop-color="#12062a"/></radialGradient><radialGradient id="i"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#7df9ff"/><stop offset="1" stop-color="#7b3fe4"/></radialGradient></defs><rect width="100" height="100" rx="22" fill="url(#b)"/><g stroke="#ffd36b" stroke-width="2" stroke-linecap="round"><path d="M50 8v9M26 15l4 7M74 15l-4 7M12 28l7 4M88 28l-7 4M50 92v-9M26 85l4-7M74 85l-4-7"/></g><path d="M9 50Q50 12 91 50Q50 88 9 50Z" fill="#0d0620" stroke="#ffd36b" stroke-width="3.5"/><circle cx="50" cy="50" r="17" fill="url(#i)"/><circle cx="50" cy="50" r="6.5" fill="#0d0620"/><circle cx="45" cy="45" r="3" fill="#fff"/><path d="M80 20l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ffd36b"/></svg>';
+const LU="data:image/svg+xml,"+encodeURIComponent(LOGO);
+$=id=>document.getElementById(id);
+$("lg").src=LU;
+(function(){const a=document.createElement("link");a.rel="icon";a.href=LU;document.head.appendChild(a);
+const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=180;c.getContext("2d").drawImage(im,0,0,180,180);const l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l)};
+im.src="data:image/svg+xml,"+encodeURIComponent(LOGO.replace('rx="22"','rx="0"'))})();
+const K=(p,i)=>p+"-"+i;
+const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const st={p:0,caps:{},imgs:{},dw:{},sel:null,sx:0,hi:null,mode:ls("mm_mode","sim"),dwell:+ls("mm_dwell",3),voz:ls("mm_voz","1")==="1",lang:ls("mm_lang","es-ES")};
+try{st.caps=JSON.parse(ls("mm_caps","{}"))}catch(e){}
+let g={c:null,start:0,lastIn:0,last:0};
+const def=(p,i)=>E[(p*S+i)%E.length];
+const cap=(p,i)=>st.caps[K(p,i)]||def(p,i)[1];
+function img(p,i){const k=K(p,i);if(st.imgs[k])return st.imgs[k];const d=def(p,i),n=p*S+i,h=(n*37)%360,h2=(h+50)%360;
+return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl('+h+',85%,58%)"/><stop offset="1" stop-color="hsl('+h2+',85%,38%)"/></linearGradient><radialGradient id="r"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="100" height="100" fill="url(#a)"/><circle cx="50" cy="52" r="42" fill="url(#r)"/><circle cx="14" cy="16" r="2" fill="#fff"/><circle cx="86" cy="24" r="1.5" fill="#fff"/><circle cx="80" cy="86" r="2.2" fill="#fff"/><circle cx="18" cy="82" r="1.4" fill="#fff"/><text x="50" y="70" font-size="58" text-anchor="middle">'+d[0]+'</text></svg>')}
+function render(){$("pg").textContent=(st.p+1)+"/"+N;const gr=$("grid");gr.innerHTML="";
+for(let i=0;i<S;i++){const c=document.createElement("div");c.className="c";c.dataset.i=i;c.innerHTML='<img alt=""><span></span>';c.firstChild.src=img(st.p,i);c.lastChild.textContent=(i+1)+". "+cap(st.p,i);gr.appendChild(c)}}
+function go(d){st.p=(st.p+d+N)%N;st.dw={};st.sel=null;g={c:null,start:0,lastIn:0,last:0};render()}
+function sample(i,now){const dt=g.last?Math.min(now-g.last,300):0;g.last=now;if(i!==null)st.dw[i]=(st.dw[i]||0)+dt;
+if(i===g.c){g.lastIn=now}else if(g.c===null||now-g.lastIn>500){g.c=i;g.start=now;g.lastIn=now}
+if(g.c!==null&&st.sel===null&&now-g.start>=st.dwell*1000)st.sel=g.c}
+const grid=$("grid");let iv=null;
+grid.addEventListener("pointerdown",e=>{st.sx=e.clientX;if(st.mode!=="sim")return;const c=e.target.closest(".c");if(!c)return;st.hi=+c.dataset.i;c.classList.add("on");clearInterval(iv);iv=setInterval(()=>sample(st.hi,performance.now()),100)});
+function rel(){clearInterval(iv);st.hi=null;document.querySelectorAll(".c.on").forEach(x=>x.classList.remove("on"));if(st.mode==="sim")sample(null,performance.now())}
+grid.addEventListener("pointerup",e=>{const dx=e.clientX-st.sx;rel();if(Math.abs(dx)>60)go(dx<0?1:-1)});
+grid.addEventListener("pointercancel",rel);
+function toast(t){const o=$("toast");o.textContent=t;o.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>o.style.opacity=0,4000)}
+function say(t){if(!st.voz||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
+$("close").onclick=()=>{let b=st.sel,m=0;if(b===null){b=-1;for(const k in st.dw){if(st.dw[k]>m){m=st.dw[k];b=+k}}}
+const t=b<0?"No detecté ninguna mirada en esta página.":"Página "+(st.p+1)+", imagen "+(b+1)+", "+cap(st.p,b)+".";toast(t);say(t)};
+document.addEventListener("touchstart",e=>{if(e.touches.length>=3){e.preventDefault();openSet()}},{passive:false});
+function openSet(){rel();$("set").style.display="block";$("ep").value=st.p+1;slots();stat()}
+$("sc").onclick=()=>{$("set").style.display="none";render()};
+$("vz").checked=st.voz;$("lang").value=st.lang;$("mode").value=st.mode;$("dw").value=st.dwell;$("dv").textContent=st.dwell;
+$("vz").onchange=e=>{st.voz=e.target.checked;sv("mm_voz",st.voz?"1":"0")};
+$("lang").onchange=e=>{st.lang=e.target.value;sv("mm_lang",st.lang)};
+$("mode").onchange=e=>{st.mode=e.target.value;sv("mm_mode",st.mode);stat()};
+$("dw").oninput=e=>{st.dwell=+e.target.value;$("dv").textContent=st.dwell;sv("mm_dwell",st.dwell)};
+$("test").onclick=()=>say("Prueba de audio. Página 1, imagen 3, Pizza.");
+$("ep").onchange=()=>{const v=Math.min(N,Math.max(1,+$("ep").value||1));$("ep").value=v;st.p=v-1;slots()};
+const saveCaps=()=>sv("mm_caps",JSON.stringify(st.caps));
+function slots(){const box=$("slots");box.innerHTML="";
+for(let i=0;i<S;i++){const r=document.createElement("div");r.className="row";const im=document.createElement("img");im.className="th";im.src=img(st.p,i);
+const t=document.createElement("input");t.type="text";t.value=cap(st.p,i);t.oninput=()=>{st.caps[K(st.p,i)]=t.value;saveCaps()};
+const l=document.createElement("label");l.className="f";l.textContent="Imagen";const f=document.createElement("input");f.type="file";f.accept="image/*";
+f.onchange=()=>{const file=f.files[0];if(!file)return;const u=URL.createObjectURL(file),x=new Image();
+x.onload=()=>{const s=Math.min(1,700/Math.max(x.width,x.height)),c=document.createElement("canvas");c.width=x.width*s;c.height=x.height*s;c.getContext("2d").drawImage(x,0,0,c.width,c.height);
+const d=c.toDataURL("image/jpeg",.78);st.imgs[K(st.p,i)]=d;im.src=d;idbSet(K(st.p,i),d);URL.revokeObjectURL(u)};x.src=u};
+l.appendChild(f);r.append(im,t,l);box.appendChild(r)}}
+let db=null;
+const idbOpen=()=>new Promise(res=>{try{const q=indexedDB.open("mm",1);q.onupgradeneeded=()=>q.result.createObjectStore("i");q.onsuccess=()=>{db=q.result;res()};q.onerror=()=>res()}catch(e){res()}});
+function idbSet(k,v){try{if(db)db.transaction("i","readwrite").objectStore("i").put(v,k)}catch(e){}}
+const idbLoad=()=>new Promise(res=>{try{if(!db)return res();const q=db.transaction("i").objectStore("i").openCursor();q.onsuccess=()=>{const c=q.result;if(c){st.imgs[c.key]=c.value;c.continue()}else res()};q.onerror=()=>res()}catch(e){res()}});
+/* Mirada con cámara (WebGazer) */
+let gzLoaded=false,camOn=false;
+function loadGaze(urls){const u=urls.shift();if(!u){stat();return}const s=document.createElement("script");s.src=u;s.onload=()=>{gzLoaded=!!window.webgazer;stat()};s.onerror=()=>loadGaze(urls);document.head.appendChild(s)}
+loadGaze(["https://webgazer.cs.brown.edu/webgazer.js","https://cdn.jsdelivr.net/npm/webgazer@2.1.0/dist/webgazer.js"]);
+function stat(){$("stat").textContent=!gzLoaded?"Cámara no disponible en esta vista. Funciona al abrir la app desde tu dirección de GitHub (HTTPS). Mientras tanto usa el simulador.":camOn?"Cámara activa. Calibra con la persona antes de empezar.":"Pulsa Activar cámara y luego Calibrar.";}
+$("cam").onclick=async()=>{if(!gzLoaded){stat();return}
+try{webgazer.setRegression("ridge").saveDataAcrossSessions(true).setGazeListener(d=>{if(!d||st.mode!=="cam")return;const el=document.elementFromPoint(d.x,d.y),c=el&&el.closest?el.closest(".c"):null;sample(c?+c.dataset.i:null,performance.now())});
+await webgazer.begin();webgazer.showVideoPreview(false).showPredictionPoints(false).showFaceOverlay(false).showFaceFeedbackBox(false);camOn=true;st.mode="cam";$("mode").value="cam";sv("mm_mode","cam");stat()}
+catch(e){$("stat").textContent="No se pudo activar la cámara. Revisa el permiso en Ajustes de Safari."}};
+$("cb").onclick=()=>{if(!camOn){$("stat").textContent="Primero pulsa Activar cámara.";return}
+const o=$("cal");o.querySelectorAll(".dot").forEach(d=>d.remove());o.style.display="block";let left=9;
+[15,50,85].forEach(y=>[15,50,85].forEach(x=>{const d=document.createElement("div");d.className="dot";d.style.left=x+"%";d.style.top=y+"%";let n=0;
+d.onclick=()=>{n++;d.style.opacity=1-n*.17;if(n>=5){d.remove();if(--left===0){o.style.display="none";toast("Calibración lista")}}};o.appendChild(d)}))};
+render();stat();idbOpen().then(idbLoad).then(render);
+</script>
+</body></html>
