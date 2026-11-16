@@ -2,8 +2,8 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Visión Mental">
-<title>Visión Mental</title>
+<meta name="apple-mobile-web-app-title" content="Descubre">
+<title>Descubre</title>
 <style>
 :root{--bg:#f5f5f7;--fg:#1d1d1f;--card:#fff;--mut:#6e6e73;--ac:#7b3fe4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0818;--fg:#f2f2f4;--card:#1b1228;--mut:#a49bb5;color-scheme:dark}}
@@ -15,132 +15,105 @@ body{background:var(--bg);color:var(--fg);font-family:-apple-system,system-ui,"S
 header{display:flex;align-items:center;gap:10px;padding:2px 2px 8px}
 header img{width:36px;height:36px;border-radius:9px}
 #tt{flex:1;line-height:1.1}#tt b{font-size:16px;display:block}#tt small{font-size:11px;color:var(--mut)}
-#pg{font-size:12px;color:var(--mut);margin-right:4px}
+#pg{font-size:12px;color:var(--mut)}
 button{font:inherit;border:0;border-radius:10px;padding:8px 14px;background:var(--ac);color:#fff;font-weight:600}
 button.g{background:var(--card);color:var(--fg);border:1px solid var(--mut)}
 #grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:8px;touch-action:pan-y}
-.c{background:var(--card);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:0;border:3px solid transparent}
-.c.on{border-color:#ffd36b}
+.c{background:var(--card);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
 .c img{flex:1;min-height:0;width:100%;object-fit:cover;pointer-events:none;display:block}
 .c span{font-size:13px;font-weight:600;text-align:center;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#det{flex:1;min-height:0;display:none;flex-direction:column;gap:8px;overflow:auto;-webkit-user-select:auto;user-select:auto}
+#det img{width:100%;max-height:42%;object-fit:cover;border-radius:14px;flex-shrink:0}
+#det h2{margin:0;font-size:22px}
+#det p{margin:0;font-size:15px;line-height:1.45}
+#det small{color:var(--mut)}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:70}
 #set{position:fixed;inset:0;background:var(--bg);overflow:auto;display:none;padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(24px + env(safe-area-inset-bottom,0px));box-sizing:border-box;-webkit-user-select:auto;user-select:auto;z-index:20}
 #set h2{margin:0 0 10px;font-size:20px}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
 .card{background:var(--card);border-radius:12px;padding:10px;margin:10px 0}
-input[type=text],input[type=number],select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--mut);background:var(--bg);color:var(--fg);min-width:0}
-input[type=text]{flex:1}input[type=range]{flex:1}
+select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--mut);background:var(--bg);color:var(--fg)}
 small{color:var(--mut)}
-label.f{background:var(--card);color:var(--ac);border:1px solid var(--ac);border-radius:10px;padding:7px 10px;font-weight:600;font-size:14px}
-label.f input{display:none}
-.th{width:44px;height:44px;border-radius:8px;object-fit:cover}
-#cal{position:fixed;inset:0;background:rgba(10,5,20,.94);display:none;z-index:60;color:#fff}
-#cal p{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:0;right:0;text-align:center;font-size:13px;margin:0;padding:0 16px}
-.dot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:radial-gradient(#fff,#7df9ff 40%,#7b3fe4)}
 </style></head>
 <body>
 <div id="app">
-<header><img id="lg" alt=""><div id="tt"><b>Visión Mental</b><small>por el Mago Camilo</small></div><span id="pg"></span><button id="close">Cerrar</button></header>
+<header><img id="lg" alt=""><div id="tt"><b>Descubre</b><small>por el Mago Camilo</small></div><span id="pg"></span><button id="close">Cerrar</button></header>
 <div id="grid"></div>
+<div id="det"><img id="di" alt=""><h2 id="dn"></h2><p id="dt"></p><small>Fuente: Wikipedia</small><button id="back">Volver</button></div>
 </div>
 <div id="toast"></div>
-<div id="cal"><p>Mira cada punto y tócalo 5 veces mientras lo miras.</p></div>
 <div id="set">
 <h2>Configuración</h2>
 <div class="card">
-<div class="row"><label><input type="checkbox" id="vz" checked> Voz activada</label></div>
+<div class="row"><label><input type="checkbox" id="vz" checked> Voz activada (nombre de lo que abren)</label></div>
 <div class="row"><select id="lang"><option value="es-ES">Español (España)</option><option value="es-MX">Español (México)</option><option value="es-US">Español (EE. UU.)</option></select><button class="g" id="test">Probar audio</button></div>
 <small>La voz sale por el audio activo del iPhone. Conecta tu audífono Bluetooth en Ajustes del iPhone.</small>
 </div>
-<div class="card">
-<div class="row"><b>Mirada</b><select id="mode"><option value="sim">Simulador (dedo)</option><option value="cam">Cámara (mirada real)</option></select></div>
-<div class="row">Tiempo fijo: <b id="dv">3</b> s <input type="range" id="dw" min="2" max="8" step="0.5" value="3"></div>
-<div class="row"><button id="cam">Activar cámara</button><button class="g" id="cb">Calibrar</button><button class="g" id="pb">Ver mirada</button></div>
-<small id="stat"></small>
-</div>
-<div class="card">
-<div class="row"><b>Editar página</b> <input type="number" id="ep" min="1" max="50" value="1" style="width:70px"></div>
-<div id="slots"></div>
-<small>Tus imágenes se reducen y se guardan en este teléfono.</small>
-</div>
+<div class="card"><b>Usar sin internet</b><div class="row"><button id="dl">Descargar todo</button></div><small id="dls">Con internet, descarga las fotos y textos una sola vez. Después funciona sin conexión.</small></div>
 <div class="row"><button id="sc">Listo</button></div>
 </div>
 <script>
-const N=50,S=6;
-const F=[["🍕","Pizza"],["🍣","Sushi"],["🍩","Dona"],["🍓","Fresas"],["🌮","Tacos"],["🍦","Helado"],["🍔","Hamburguesa"],["🍰","Pastel"],["🥐","Cruasán"],["🍜","Ramen"],["🍉","Sandía"],["🍝","Espaguetis"],["🥑","Aguacate"],["🍤","Camarones"],["🧁","Cupcake"],["🍇","Uvas"]];
-const M=[["🗼","Torre Eiffel"],["🗽","Estatua de la Libertad"],["🏛️","Partenón"],["🗿","Moái"],["🏰","Castillo"],["⛩️","Templo japonés"],["🕌","Mezquita"],["🌉","Puente"],["🏯","Castillo japonés"],["⛪","Catedral"],["🌋","Volcán"],["🏔️","Montaña"],["🏝️","Isla"],["🌅","Atardecer"],["🎆","Fuegos artificiales"],["🌈","Arcoíris"]];
-const E=[];for(let i=0;i<16;i++){E.push(F[i],M[i])}
+const N=100,$=id=>document.getElementById(id);
+const MON="Torre Eiffel|Coliseo|Taj Mahal|Machu Picchu|Cristo Redentor|Estatua de la Libertad|Gran Muralla China|Gran Pirámide de Guiza|Chichén Itzá|Sagrada Familia|Big Ben|Partenón|Petra|Alhambra|Puente Golden Gate|Ópera de Sídney|Torre de Pisa|Angkor Wat|Stonehenge|Moái|Burj Khalifa|Acrópolis de Atenas|Santa Sofía|Catedral de Notre-Dame de París|Puerta de Brandeburgo|Castillo de Neuschwanstein|Monte Rushmore|Basílica de San Pedro|Arco del Triunfo|Torre de Londres|Puente de la Torre|Palacio de Buckingham|Catedral de San Basilio|Ciudad Prohibida|Monte Fuji|Cataratas del Niágara|Cataratas del Iguazú|Gran Cañón|Uluru|Torre CN|Empire State Building|Edificio Chrysler|Puente de Brooklyn|Space Needle|Teotihuacán|Palenque|Tikal|Giralda|Mezquita-Catedral de Córdoba|Acueducto de Segovia|Palacio Real de Madrid|Puerta de Alcalá|Parque Güell|Casa Batlló|Torre del Oro|Fontana de Trevi|Panteón de Agripa|Catedral de Milán|Puente de Rialto|Plaza de San Marcos|Palacio Ducal de Venecia|Foro Romano|Pompeya|Delfos|Templo de Karnak|Abu Simbel|Esfinge de Guiza|Valle de los Reyes|Mezquita del Sultán Ahmed|Borobudur|Fuerte Rojo|Kremlin de Moscú|Cristo de Corcovado|Torre Latinoamericana|Castillo de Chapultepec|Sacsayhuamán|Isla de Pascua|Tour Montparnasse|Palacio de Versalles|Louvre|Torre Willis|Atomium";
+const FOO="Pizza|Sushi|Paella|Taco|Hamburguesa|Lasaña|Ceviche|Empanada|Tamal|Arepa|Gazpacho|Tortilla de patatas|Cruasán|Baguette|Crepé|Fondue|Risotto|Tiramisú|Helado|Chocolate|Fresa=Fragaria × ananassa|Manzana=Malus domestica|Naranja=Citrus × sinensis|Uva=Vitis vinifera|Mango=Mangifera indica|Piña=Ananas comosus|Sandía=Citrullus lanatus|Aguacate=Persea americana|Coco=Cocos nucifera|Limón=Citrus × limon|Cereza=Prunus avium|Durazno=Prunus persica|Pera=Pyrus communis|Kiwi=Actinidia deliciosa|Papaya=Carica papaya|Tomate=Solanum lycopersicum|Maíz=Zea mays|Papa=Solanum tuberosum|Zanahoria=Daucus carota|Cebolla=Allium cepa|Ajo=Allium sativum|Café|Té|Queso|Pan|Miel|Sopa|Ensalada|Tarta|Galleta|Gofre|Panqueque|Churro|Flan|Brownie|Magdalena|Palomitas de maíz|Nachos|Guacamole|Ramen|Pad thai|Curry|Kebab|Falafel|Hummus|Pollo frito|Bistec|Jamón|Chorizo|Salchicha|Salmón=Salmo salar|Langosta|Camarón|Caviar|Ostra|Pasta|Arroz con leche|Ñoquis|Pretzel|Bagel|Dim sum|Gyōza|Brócoli=Brassica oleracea var. italica|Plátano frito=Tostones|Arroz";
+const ACT="Leonardo DiCaprio|Brad Pitt|Tom Hanks|Will Smith|Johnny Depp|Robert Downey Jr.|Keanu Reeves|Morgan Freeman|Denzel Washington|Tom Cruise|Jennifer Lawrence|Scarlett Johansson|Angelina Jolie|Meryl Streep|Julia Roberts|Nicole Kidman|Cate Blanchett|Natalie Portman|Emma Stone|Anne Hathaway|Sandra Bullock|Charlize Theron|Margot Robbie|Gal Gadot|Penélope Cruz|Salma Hayek|Antonio Banderas|Javier Bardem|Gael García Bernal|Diego Luna|Eugenio Derbez|Cantinflas|Pedro Infante|Jorge Negrete|Sofía Vergara|Jennifer Aniston|Matt Damon|Ben Affleck|George Clooney|Harrison Ford|Al Pacino|Robert De Niro|Jack Nicholson|Anthony Hopkins|Clint Eastwood|Arnold Schwarzenegger|Sylvester Stallone|Jackie Chan|Bruce Lee|Jim Carrey|Eddie Murphy|Robin Williams|Charles Chaplin|Marilyn Monroe|Audrey Hepburn|Marlon Brando|Humphrey Bogart|Sean Connery|Daniel Craig|Hugh Jackman|Chris Hemsworth|Chris Evans|Ryan Reynolds|Dwayne Johnson|Vin Diesel|Jason Statham|Bruce Willis|Mel Gibson|Kevin Costner|Russell Crowe|Christian Bale|Joaquin Phoenix|Gary Oldman|Ian McKellen|Patrick Stewart|Emma Watson|Daniel Radcliffe|Kate Winslet|Helen Mirren|Judi Dench|Edward Norton|Jodie Foster|Halle Berry";
+const C=[[MON,7,"🏛️",210],[FOO,11,"🍽️",20],[ACT,13,"🎬",290]].map(a=>({l:a[0].split("|"),m:a[1],e:a[2],h:a[3]}));
+function items(p){const a=[];C.forEach((c,ci)=>{for(let j=0;j<2;j++){const s=c.l[((p*2+j)*c.m)%c.l.length].split("=");a.push({n:s[0],t:s[1]||s[0],c:ci})}});const o=[];for(let k=0;k<6;k++)o.push(a[(k*5+p)%6]);return o}
 const LOGO='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="b" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#6a2fb8"/><stop offset="1" stop-color="#12062a"/></radialGradient><radialGradient id="i"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#7df9ff"/><stop offset="1" stop-color="#7b3fe4"/></radialGradient></defs><rect width="100" height="100" rx="22" fill="url(#b)"/><g stroke="#ffd36b" stroke-width="2" stroke-linecap="round"><path d="M50 8v9M26 15l4 7M74 15l-4 7M12 28l7 4M88 28l-7 4M50 92v-9M26 85l4-7M74 85l-4-7"/></g><path d="M9 50Q50 12 91 50Q50 88 9 50Z" fill="#0d0620" stroke="#ffd36b" stroke-width="3.5"/><circle cx="50" cy="50" r="17" fill="url(#i)"/><circle cx="50" cy="50" r="6.5" fill="#0d0620"/><circle cx="45" cy="45" r="3" fill="#fff"/><path d="M80 20l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#ffd36b"/></svg>';
-const LU="data:image/svg+xml,"+encodeURIComponent(LOGO);
-$=id=>document.getElementById(id);
-$("lg").src=LU;
-(function(){const a=document.createElement("link");a.rel="icon";a.href=LU;document.head.appendChild(a);
-const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=180;c.getContext("2d").drawImage(im,0,0,180,180);const l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l)};
-im.src="data:image/svg+xml,"+encodeURIComponent(LOGO.replace('rx="22"','rx="0"'))})();
-const K=(p,i)=>p+"-"+i;
-const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
-const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
-const st={p:0,caps:{},imgs:{},dw:{},sel:null,sx:0,hi:null,mode:ls("mm_mode","sim"),dwell:+ls("mm_dwell",3),voz:ls("mm_voz","1")==="1",lang:ls("mm_lang","es-ES")};
-try{st.caps=JSON.parse(ls("mm_caps","{}"))}catch(e){}
-let g={c:null,start:0,lastIn:0,last:0};
-const def=(p,i)=>E[(p*S+i)%E.length];
-const cap=(p,i)=>st.caps[K(p,i)]||def(p,i)[1];
-function img(p,i){const k=K(p,i);if(st.imgs[k])return st.imgs[k];const d=def(p,i),n=p*S+i,h=(n*37)%360,h2=(h+50)%360;
-return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl('+h+',85%,58%)"/><stop offset="1" stop-color="hsl('+h2+',85%,38%)"/></linearGradient><radialGradient id="r"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="100" height="100" fill="url(#a)"/><circle cx="50" cy="52" r="42" fill="url(#r)"/><circle cx="14" cy="16" r="2" fill="#fff"/><circle cx="86" cy="24" r="1.5" fill="#fff"/><circle cx="80" cy="86" r="2.2" fill="#fff"/><circle cx="18" cy="82" r="1.4" fill="#fff"/><text x="50" y="70" font-size="58" text-anchor="middle">'+d[0]+'</text></svg>')}
-function render(){$("pg").textContent=(st.p+1)+"/"+N;const gr=$("grid");gr.innerHTML="";
-for(let i=0;i<S;i++){const c=document.createElement("div");c.className="c";c.dataset.i=i;c.innerHTML='<img alt=""><span></span>';c.firstChild.src=img(st.p,i);c.lastChild.textContent=(i+1)+". "+cap(st.p,i);gr.appendChild(c)}}
-function go(d){st.p=(st.p+d+N)%N;st.dw={};st.sel=null;g={c:null,start:0,lastIn:0,last:0};render()}
-function sample(i,now){const dt=g.last?Math.min(now-g.last,300):0;g.last=now;if(i!==null)st.dw[i]=(st.dw[i]||0)+dt;
-if(i===g.c){g.lastIn=now}else if(g.c===null||now-g.lastIn>500){g.c=i;g.start=now;g.lastIn=now}
-if(g.c!==null&&st.sel===null&&now-g.start>=st.dwell*1000)st.sel=g.c}
-const grid=$("grid");let iv=null;
-grid.addEventListener("pointerdown",e=>{st.sx=e.clientX;if(st.mode!=="sim")return;const c=e.target.closest(".c");if(!c)return;st.hi=+c.dataset.i;c.classList.add("on");clearInterval(iv);iv=setInterval(()=>sample(st.hi,performance.now()),100)});
-function rel(){clearInterval(iv);st.hi=null;document.querySelectorAll(".c.on").forEach(x=>x.classList.remove("on"));if(st.mode==="sim")sample(null,performance.now())}
-grid.addEventListener("pointerup",e=>{const dx=e.clientX-st.sx;rel();if(Math.abs(dx)>60)go(dx<0?1:-1)});
-grid.addEventListener("pointercancel",rel);
+const LU="data:image/svg+xml,"+encodeURIComponent(LOGO);$("lg").src=LU;
+(function(){const a=document.createElement("link");a.rel="icon";a.href=LU;document.head.appendChild(a);const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=180;c.getContext("2d").drawImage(im,0,0,180,180);const l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l)};im.src="data:image/svg+xml,"+encodeURIComponent(LOGO.replace('rx="22"','rx="0"'))})();
+const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const st={p:0,last:null,sx:0,sy:0,voz:ls("md_voz","1")==="1",lang:ls("md_lang","es-ES")};
+const cache={};
+function trim(t){t=t||"";if(t.length>900){t=t.slice(0,900);const k=t.lastIndexOf(". ");if(k>300)t=t.slice(0,k+1)}return t}
+async function fetchSum(it){try{const r=await fetch("https://es.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(it.t.replace(/ /g,"_")));if(!r.ok)return null;const d=await r.json();return d.type==="disambiguation"?null:d}catch(e){return null}}
+async function load(it){const s=await dbGet(it.t);if(s)return{text:s.text,img:s.blob?URL.createObjectURL(s.blob):null};
+const d=await fetchSum(it);if(!d)return null;const u=d.thumbnail?d.thumbnail.source:null;return{text:trim(d.extract),img:u?u.replace(/\/\d+px-/,"/600px-"):null,img0:u}}
+function info(it){const k=it.t;if(!cache[k])cache[k]=load(it).then(d=>{if(!d)delete cache[k];return d});return cache[k]}
+function art(it){const c=C[it.c];return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl('+c.h+',70%,45%)"/><text x="50" y="66" font-size="48" text-anchor="middle">'+c.e+'</text></svg>')}
+function render(){$("pg").textContent=(st.p+1)+"/"+N;const gr=$("grid");gr.innerHTML="";const p=st.p;
+items(p).forEach((it,i)=>{const c=document.createElement("div");c.className="c";c.dataset.i=i;c.innerHTML='<img alt=""><span></span>';const im=c.firstChild;im.src=art(it);c.lastChild.textContent=it.n;gr.appendChild(c);
+info(it).then(d=>{if(d&&d.img&&st.p===p){im.onerror=()=>{im.onerror=null;im.src=d.img0||art(it)};im.src=d.img}})})}
+function go(d){st.p=(st.p+d+N)%N;render()}
 function toast(t){const o=$("toast");o.textContent=t;o.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>o.style.opacity=0,4000)}
-function say(t){if(!st.voz||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
-$("close").onclick=()=>{if(st.mode==="cam"&&!camOn){const t="La cámara no está activa.";toast(t);say(t);return}let b=st.sel,m=0;if(b===null){b=-1;for(const k in st.dw){if(st.dw[k]>m){m=st.dw[k];b=+k}}}
-const t=b<0?"No detecté ninguna mirada en esta página.":"Página "+(st.p+1)+", imagen "+(b+1)+", "+cap(st.p,b)+".";toast(t);say(t)};
-document.addEventListener("touchstart",e=>{if(e.touches.length>=3){e.preventDefault();openSet()}},{passive:false});
-function openSet(){rel();$("set").style.display="block";$("ep").value=st.p+1;slots();stat()}
-$("sc").onclick=()=>{$("set").style.display="none";render()};
-$("vz").checked=st.voz;$("lang").value=st.lang;$("mode").value=st.mode;$("dw").value=st.dwell;$("dv").textContent=st.dwell;
-$("vz").onchange=e=>{st.voz=e.target.checked;sv("mm_voz",st.voz?"1":"0")};
-$("lang").onchange=e=>{st.lang=e.target.value;sv("mm_lang",st.lang)};
-$("mode").onchange=e=>{st.mode=e.target.value;sv("mm_mode",st.mode);stat()};
-$("dw").oninput=e=>{st.dwell=+e.target.value;$("dv").textContent=st.dwell;sv("mm_dwell",st.dwell)};
-$("test").onclick=()=>say("Prueba de audio. Página 1, imagen 3, Pizza.");
-$("ep").onchange=()=>{const v=Math.min(N,Math.max(1,+$("ep").value||1));$("ep").value=v;st.p=v-1;slots()};
-const saveCaps=()=>sv("mm_caps",JSON.stringify(st.caps));
-function slots(){const box=$("slots");box.innerHTML="";
-for(let i=0;i<S;i++){const r=document.createElement("div");r.className="row";const im=document.createElement("img");im.className="th";im.src=img(st.p,i);
-const t=document.createElement("input");t.type="text";t.value=cap(st.p,i);t.oninput=()=>{st.caps[K(st.p,i)]=t.value;saveCaps()};
-const l=document.createElement("label");l.className="f";l.textContent="Imagen";const f=document.createElement("input");f.type="file";f.accept="image/*";
-f.onchange=()=>{const file=f.files[0];if(!file)return;const u=URL.createObjectURL(file),x=new Image();
-x.onload=()=>{const s=Math.min(1,700/Math.max(x.width,x.height)),c=document.createElement("canvas");c.width=x.width*s;c.height=x.height*s;c.getContext("2d").drawImage(x,0,0,c.width,c.height);
-const d=c.toDataURL("image/jpeg",.78);st.imgs[K(st.p,i)]=d;im.src=d;idbSet(K(st.p,i),d);URL.revokeObjectURL(u)};x.src=u};
-l.appendChild(f);r.append(im,t,l);box.appendChild(r)}}
+function say(t,q){if(!st.voz||!window.speechSynthesis)return;try{if(!q)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
+function open(i){const it=items(st.p)[i];st.last={p:st.p,i:i,n:it.n};
+$("grid").style.display="none";$("det").style.display="flex";$("dn").textContent=it.n;$("dt").textContent="Cargando…";$("di").src=art(it);$("det").scrollTop=0;
+say("Página "+(st.p+1)+", imagen "+(i+1)+": "+it.n+".");
+info(it).then(d=>{if(!st.last||st.last.n!==it.n)return;
+if(!d){$("dt").textContent="No hay información guardada. Descárgala desde la configuración, con internet.";return}
+if(d.img){const im=$("di");im.onerror=()=>{im.onerror=null;im.src=d.img0||art(it)};im.src=d.img}
+$("dt").textContent=d.text})}
+function back(){$("det").style.display="none";$("grid").style.display="grid"}
+$("back").onclick=back;
+const grid=$("grid");
+grid.addEventListener("pointerdown",e=>{st.sx=e.clientX;st.sy=e.clientY});
+grid.addEventListener("pointerup",e=>{const dx=e.clientX-st.sx,dy=e.clientY-st.sy;
+if(Math.abs(dx)>60){go(dx<0?1:-1);return}
+if(Math.abs(dx)<12&&Math.abs(dy)<12){const c=e.target.closest(".c");if(c)open(+c.dataset.i)}});
+$("close").onclick=()=>{const l=st.last;back();const t=l?"Lo último que vio: página "+l.p+1+", imagen "+(l.i+1)+": "+l.n+".":"No ha abierto ninguna imagen.";
+const tt=l?"Lo último que vio: página "+(l.p+1)+", imagen "+(l.i+1)+": "+l.n+".":t;toast(tt);say(tt)};
+document.addEventListener("touchstart",e=>{if(e.touches.length>=3){e.preventDefault();$("set").style.display="block"}},{passive:false});
+$("sc").onclick=()=>{$("set").style.display="none"};
+$("vz").checked=st.voz;$("lang").value=st.lang;
+$("vz").onchange=e=>{st.voz=e.target.checked;sv("md_voz",st.voz?"1":"0")};
+$("lang").onchange=e=>{st.lang=e.target.value;sv("md_lang",st.lang)};
+$("test").onclick=()=>say("Prueba de audio. Página 1, imagen 3: Fresa.");
 let db=null;
-const idbOpen=()=>new Promise(res=>{try{const q=indexedDB.open("mm",1);q.onupgradeneeded=()=>q.result.createObjectStore("i");q.onsuccess=()=>{db=q.result;res()};q.onerror=()=>res()}catch(e){res()}});
-function idbSet(k,v){try{if(db)db.transaction("i","readwrite").objectStore("i").put(v,k)}catch(e){}}
-const idbLoad=()=>new Promise(res=>{try{if(!db)return res();const q=db.transaction("i").objectStore("i").openCursor();q.onsuccess=()=>{const c=q.result;if(c){st.imgs[c.key]=c.value;c.continue()}else res()};q.onerror=()=>res()}catch(e){res()}});
-/* Mirada con cámara (WebGazer) */
-let gzLoaded=false,camOn=false;
-function loadGaze(urls){const u=urls.shift();if(!u){stat();return}const s=document.createElement("script");s.src=u;s.onload=()=>{gzLoaded=!!window.webgazer;stat()};s.onerror=()=>loadGaze(urls);document.head.appendChild(s)}
-loadGaze(["https://webgazer.cs.brown.edu/webgazer.js","https://cdn.jsdelivr.net/npm/webgazer@2.1.0/dist/webgazer.js"]);
-function stat(){$("stat").textContent=!gzLoaded?"Cámara no disponible en esta vista. Funciona al abrir la app desde tu dirección de GitHub (HTTPS). Mientras tanto usa el simulador.":camOn?"Cámara activa. Muestras de mirada: "+(st.n||0)+". Si el número no sube, la cámara no está detectando el rostro.":"Pulsa Activar cámara y luego Calibrar.";}
-function nearCell(x,y){const r=grid.getBoundingClientRect();if(!r.width)return null;const cx=Math.min(1,Math.max(0,(x-r.left)/r.width)),cy=Math.min(1,Math.max(0,(y-r.top)/r.height));return Math.min(2,Math.floor(cy*3))*2+Math.min(1,Math.floor(cx*2))}
-$("cam").onclick=async()=>{if(!gzLoaded){stat();return}
-try{webgazer.setRegression("ridge").saveDataAcrossSessions(true).setGazeListener(d=>{if(!d)return;st.n=(st.n||0)+1;if(st.mode!=="cam"||$("set").style.display==="block")return;sample(nearCell(d.x,d.y),performance.now())});
-await webgazer.begin();webgazer.showVideoPreview(false).showPredictionPoints(false).showFaceOverlay(false).showFaceFeedbackBox(false);camOn=true;st.mode="cam";$("mode").value="cam";sv("mm_mode","cam");stat()}
-catch(e){$("stat").textContent="No se pudo activar la cámara. Revisa el permiso en Ajustes de Safari."}};
-$("cb").onclick=()=>{if(!camOn){$("stat").textContent="Primero pulsa Activar cámara.";return}
-const o=$("cal");o.querySelectorAll(".dot").forEach(d=>d.remove());o.style.display="block";let left=9;
-[15,50,85].forEach(y=>[15,50,85].forEach(x=>{const d=document.createElement("div");d.className="dot";d.style.left=x+"%";d.style.top=y+"%";let n=0;
-d.onclick=()=>{n++;d.style.opacity=1-n*.17;if(n>=5){d.remove();if(--left===0){o.style.display="none";toast("Calibración lista")}}};o.appendChild(d)}))};
-$("pb").onclick=()=>{if(!camOn){$("stat").textContent="Primero pulsa Activar cámara.";return}webgazer.showPredictionPoints(true);setTimeout(()=>webgazer.showPredictionPoints(false),15000)};
-setInterval(()=>{if($("set").style.display==="block")stat()},1000);
-render();stat();idbOpen().then(idbLoad).then(render);
+const dbOpen=()=>new Promise(r=>{try{const q=indexedDB.open("descubre",1);q.onupgradeneeded=()=>q.result.createObjectStore("d");q.onsuccess=()=>{db=q.result;r()};q.onerror=()=>r()}catch(e){r()}});
+const dbGet=k=>new Promise(r=>{try{const q=db.transaction("d").objectStore("d").get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()}catch(e){r()}});
+const dbSet=(k,v)=>new Promise(r=>{try{const t=db.transaction("d","readwrite");t.objectStore("d").put(v,k);t.oncomplete=()=>r(true);t.onerror=()=>r(false)}catch(e){r(false)}});
+let busy=false;
+$("dl").onclick=async()=>{if(busy)return;busy=true;$("dl").disabled=true;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+const all=[];C.forEach(c=>c.l.forEach(x=>{const a=x.split("=");all.push({n:a[0],t:a[1]||a[0]})}));
+const q=all.slice(),total=all.length;let done=0,fail=0;const prog=()=>{$("dls").textContent="Descargando: "+(done+fail)+" de "+total+(fail?" ("+fail+" sin conexión o sin artículo)":"")};prog();
+async function w(){while(q.length){const it=q.shift();if(await dbGet(it.t)){done++;prog();continue}
+const d=await fetchSum(it);if(!d){fail++;prog();continue}
+let blob=null;if(d.thumbnail){try{let r=await fetch(d.thumbnail.source.replace(/\/\d+px-/,"/600px-"));if(!r.ok)r=await fetch(d.thumbnail.source);if(r.ok)blob=await r.blob()}catch(e){}}
+await dbSet(it.t,{text:trim(d.extract),blob});done++;prog()}}
+await Promise.all([w(),w(),w(),w()]);busy=false;$("dl").disabled=false;
+$("dls").textContent=fail?"Se guardaron "+done+" de "+total+". Con internet, pulsa de nuevo para completar los "+fail+" que faltan.":"Listo: "+done+" temas guardados. Ya funciona sin internet."};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+dbOpen().then(render);
 </script>
 </body></html>
