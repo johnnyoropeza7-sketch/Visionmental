@@ -2,6 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Descubre">
 <title>Descubre</title>
 <style>
@@ -28,11 +29,20 @@ button.g{background:var(--card);color:var(--fg);border:1px solid var(--mut)}
 .card{background:var(--card);border-radius:12px;padding:10px;margin:10px 0}
 select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--mut);background:var(--bg);color:var(--fg)}
 small{color:var(--mut)}
+#sb{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#0e0818;z-index:70}
+body.fake #sb{display:none}
+#fake{position:fixed;inset:0;z-index:55;background:#000;display:none;touch-action:none}
+#fake img{width:100%;height:100%;object-fit:cover;display:block}
+#hp{display:none;width:60px;height:auto;border-radius:8px;border:1px solid var(--mut)}
+label.f{background:var(--card);color:var(--ac);border:1px solid var(--ac);border-radius:10px;padding:7px 12px;font-weight:600;font-size:14px}
+label.f input{display:none}
 </style></head>
 <body>
+<div id="sb"></div>
 <div id="feed"></div>
 <button id="close">Cerrar</button>
 <div id="det"><img id="di" alt=""><h2 id="dn"></h2><p id="dt"></p><button class="g" id="back">Volver</button></div>
+<div id="fake"><img id="fi" alt=""></div>
 <div id="set">
 <div class="row"><img id="lg" alt="" style="width:44px;height:44px;border-radius:10px"><div><b>Descubre</b><br><small>por el Mago Camilo</small></div></div>
 <h2>Configuración</h2>
@@ -45,6 +55,10 @@ small{color:var(--mut)}
 <div class="row"><button id="dl">Descargar / reintentar</button></div>
 <small id="dls"></small>
 <br><small>Se descarga solo, en segundo plano, cada vez que abres la app con internet.</small></div>
+<div class="card"><b>Inicio falso</b>
+<div class="row"><img id="hp" alt=""><label class="f">Cargar imagen<input type="file" accept="image/*" id="hf"></label><button class="g" id="hx">Quitar</button></div>
+<div class="row"><button class="g" id="ht">Probar</button><button class="g" id="hs">Salir del inicio falso</button></div>
+<small>Al pulsar Cerrar se muestra esta imagen y la frase se repite 5 veces más, cada 3 segundos. Para salir: tres dedos y Salir del inicio falso.</small></div>
 <div class="row"><button id="sc">Listo</button></div>
 </div>
 <script>
@@ -108,9 +122,21 @@ const im=$("di");im.onerror=()=>{im.onerror=null;im.src=d.img||art(it)};im.src=d
 $("dt").textContent=d.text||"Sin información."})}
 feed.addEventListener("click",e=>{const c=e.target.closest(".c");if(c)openDet(+c.dataset.p,+c.dataset.i)});
 $("back").onclick=()=>{$("det").style.display="none"};
-let held=false,ht=null;
-$("close").onclick=()=>{if(held){held=false;return}const l=st.last;$("det").style.display="none";
-say(l?"Lo último que vio: página "+(l.p+1)+", imagen "+(l.i+1)+": "+l.n+".":"No ha abierto ninguna imagen.")};
+let held=false,ht=null,homeUrl=null,rt=null,rid=0;
+function sayEnd(t,cb){if(!st.voz||!window.speechSynthesis){cb();return}
+try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;let d=false;const f=()=>{if(!d){d=true;cb()}};u.onend=f;u.onerror=f;setTimeout(f,9000);speechSynthesis.speak(u)}catch(e){cb()}}
+function startRepeats(t){const id=++rid;let k=0;clearTimeout(rt);
+const loop=()=>{if(id!==rid||k>=5)return;rt=setTimeout(()=>{if(id!==rid)return;k++;sayEnd(t,loop)},3000)};sayEnd(t,loop)}
+function exitFake(){rid++;clearTimeout(rt);try{speechSynthesis.cancel()}catch(e){}$("fake").style.display="none";document.body.classList.remove("fake")}
+function closeAction(){const l=st.last;$("det").style.display="none";
+const t=l?"Lo último que vio: página "+(l.p+1)+", imagen "+(l.i+1)+": "+l.n+".":"No ha abierto ninguna imagen.";
+if(homeUrl){$("fi").src=homeUrl;$("fake").style.display="block";document.body.classList.add("fake");startRepeats(t)}else say(t)}
+$("close").onclick=()=>{if(held){held=false;return}closeAction()};
+function setHome(b){if(homeUrl)URL.revokeObjectURL(homeUrl);homeUrl=b?URL.createObjectURL(b):null;$("hp").style.display=homeUrl?"block":"none";if(homeUrl)$("hp").src=homeUrl}
+$("hf").onchange=e=>{const f=e.target.files[0];if(!f)return;const b=new Blob([f],{type:f.type||"image/png"});setHome(b);dbSet("__home__",{blob:b})};
+$("hx").onclick=()=>{setHome(null);dbSet("__home__",{blob:null})};
+$("hs").onclick=()=>{exitFake();$("set").style.display="none"};
+$("ht").onclick=()=>{$("set").style.display="none";closeAction()};
 function openSet(){$("set").style.display="block";countSaved().then(h=>stat(h,UNIQ.length))}
 $("close").addEventListener("pointerdown",()=>{ht=setTimeout(()=>{held=true;openSet()},1500)});
 ["pointerup","pointerleave","pointercancel"].forEach(v=>$("close").addEventListener(v,()=>clearTimeout(ht)));
@@ -124,6 +150,6 @@ $("dl").onclick=()=>sync();
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",()=>sync());
-dbOpen().then(()=>{build();setTimeout(sync,1500)});
+dbOpen().then(async()=>{const h=await dbGet("__home__");if(h&&h.blob)setHome(h.blob);build();setTimeout(sync,1500)});
 </script>
 </body></html>
