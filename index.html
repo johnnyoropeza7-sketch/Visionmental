@@ -33,6 +33,8 @@ small{color:var(--mut)}
 body.fake #sb{display:none}
 #fake{position:fixed;inset:0;z-index:55;background:#000;display:none;touch-action:none}
 #fake img{width:100%;height:100%;object-fit:cover;display:block}
+#peek{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:none;padding:18px 20px;background:rgba(0,0,0,.78);color:#fff;text-align:center;font-size:22px;font-weight:600;line-height:1.35;pointer-events:none}
+#fake{-webkit-touch-callout:none}
 #hp{display:none;width:60px;height:auto;border-radius:8px;border:1px solid var(--mut)}
 label.f{background:var(--card);color:var(--ac);border:1px solid var(--ac);border-radius:10px;padding:7px 12px;font-weight:600;font-size:14px}
 label.f input{display:none}
@@ -42,10 +44,13 @@ label.f input{display:none}
 <div id="feed"></div>
 <button id="close">Cerrar</button>
 <div id="det"><img id="di" alt=""><h2 id="dn"></h2><p id="dt"></p><button class="g" id="back">Volver</button></div>
-<div id="fake"><img id="fi" alt=""></div>
+<div id="fake"><img id="fi" alt=""><div id="peek"></div></div>
 <div id="set">
 <div class="row"><img id="lg" alt="" style="width:44px;height:44px;border-radius:10px"><div><b>Descubre</b><br><small>por el Mago Camilo</small></div></div>
 <h2>Configuración</h2>
+<div class="card"><b>Modo</b>
+<div class="row"><select id="modo"><option value="aur">Auricular (audio)</option><option value="man">Manual (sin audio)</option></select></div>
+<small>Manual: sin voz. Al pulsar Cerrar sale el inicio falso; mantén el dedo 2 segundos sobre la pantalla para ver lo último que vio, y al soltar desaparece.</small></div>
 <div class="card">
 <div class="row"><label><input type="checkbox" id="vz" checked> Voz activada (nombre de lo que abren)</label></div>
 <div class="row"><select id="lang"><option value="es-ES">Español (España)</option><option value="es-MX">Español (México)</option><option value="es-US">Español (EE. UU.)</option></select><button class="g" id="test">Probar audio</button></div>
@@ -74,7 +79,8 @@ const LOGO='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs>
 const LU="data:image/svg+xml,"+encodeURIComponent(LOGO);$("lg").src=LU;
 (function(){const a=document.createElement("link");a.rel="icon";a.href=LU;document.head.appendChild(a);const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=c.height=180;c.getContext("2d").drawImage(im,0,0,180,180);const l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l)};im.src="data:image/svg+xml,"+encodeURIComponent(LOGO.replace('rx="22"','rx="0"'))})();
 const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
-const st={last:null,voz:ls("md_voz","1")==="1",lang:ls("md_lang","es-ES")};
+const st={last:null,voz:ls("md_voz","1")==="1",lang:ls("md_lang","es-ES"),modo:ls("md_modo","aur")};
+const vOn=()=>st.voz&&st.modo==="aur";
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function art(it){const c=C[it.c];return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl('+c.h+',70%,45%)"/><text x="50" y="66" font-size="48" text-anchor="middle">'+c.e+'</text></svg>')}
 function trim(t){t=t||"";if(t.length>900){t=t.slice(0,900);const k=t.lastIndexOf(". ");if(k>300)t=t.slice(0,k+1)}return t}
@@ -112,7 +118,7 @@ function hydrate(c){const it=ITEMS[+c.dataset.p][+c.dataset.i],im=c.firstChild;i
 info(it).then(d=>{if(d&&d.img){im.onerror=()=>{im.onerror=null;im.src=art(it)};im.src=d.img}else c.dataset.miss=1})}
 function build(){ITEMS.forEach((pg,p)=>{const s=document.createElement("section");s.className="pg";
 pg.forEach((it,i)=>{const c=document.createElement("div");c.className="c";c.dataset.p=p;c.dataset.i=i;c.innerHTML='<img alt=""><span></span>';c.lastChild.textContent=it.n;s.appendChild(c);io.observe(c)});feed.appendChild(s)})}
-function say(t){if(!st.voz||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
+function say(t){if(!vOn()||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;speechSynthesis.speak(u)}catch(e){}}
 function openDet(p,i){const it=ITEMS[p][i];st.last={p,i,n:it.n};
 $("det").style.display="block";$("det").scrollTop=0;$("dn").textContent=it.n;$("dt").textContent="Cargando…";$("di").src=art(it);
 say("Página "+(p+1)+", imagen "+(i+1)+": "+it.n+".");
@@ -123,14 +129,15 @@ $("dt").textContent=d.text||"Sin información."})}
 feed.addEventListener("click",e=>{const c=e.target.closest(".c");if(c)openDet(+c.dataset.p,+c.dataset.i)});
 $("back").onclick=()=>{$("det").style.display="none"};
 let held=false,ht=null,homeUrl=null,rt=null,rid=0;
-function sayEnd(t,cb){if(!st.voz||!window.speechSynthesis){cb();return}
+function sayEnd(t,cb){if(!vOn()||!window.speechSynthesis){cb();return}
 try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=st.lang;let d=false;const f=()=>{if(!d){d=true;cb()}};u.onend=f;u.onerror=f;setTimeout(f,9000);speechSynthesis.speak(u)}catch(e){cb()}}
 function startRepeats(t){const id=++rid;let k=0;clearTimeout(rt);
 const loop=()=>{if(id!==rid||k>=5)return;rt=setTimeout(()=>{if(id!==rid)return;k++;sayEnd(t,loop)},3000)};sayEnd(t,loop)}
-function exitFake(){rid++;clearTimeout(rt);try{speechSynthesis.cancel()}catch(e){}$("fake").style.display="none";document.body.classList.remove("fake")}
+function exitFake(){rid++;clearTimeout(rt);try{speechSynthesis.cancel()}catch(e){}$("fake").style.display="none";$("peek").style.display="none";clearTimeout(pk);document.body.classList.remove("fake")}
 function closeAction(){const l=st.last;$("det").style.display="none";
 const t=l?"Lo último que vio: página "+(l.p+1)+", imagen "+(l.i+1)+": "+l.n+".":"No ha abierto ninguna imagen.";
-if(homeUrl){$("fi").src=homeUrl;$("fake").style.display="block";document.body.classList.add("fake");startRepeats(t)}else say(t)}
+const man=st.modo==="man";
+if(homeUrl||man){if(homeUrl){$("fi").src=homeUrl;$("fi").style.display="block"}else $("fi").style.display="none";$("peek").style.display="none";$("fake").style.display="block";document.body.classList.add("fake");if(!man)startRepeats(t)}else say(t)}
 $("close").onclick=()=>{if(held){held=false;return}closeAction()};
 function setHome(b){if(homeUrl)URL.revokeObjectURL(homeUrl);homeUrl=b?URL.createObjectURL(b):null;$("hp").style.display=homeUrl?"block":"none";if(homeUrl)$("hp").src=homeUrl}
 $("hf").onchange=e=>{const f=e.target.files[0];if(!f)return;const b=new Blob([f],{type:f.type||"image/png"});setHome(b);dbSet("__home__",{blob:b})};
@@ -141,6 +148,12 @@ function openSet(){$("set").style.display="block";countSaved().then(h=>stat(h,UN
 $("close").addEventListener("pointerdown",()=>{ht=setTimeout(()=>{held=true;openSet()},1500)});
 ["pointerup","pointerleave","pointercancel"].forEach(v=>$("close").addEventListener(v,()=>clearTimeout(ht)));
 document.addEventListener("touchstart",e=>{if(e.touches.length>=3){e.preventDefault();openSet()}},{passive:false});
+function peekText(){const l=st.last;return l?"Página "+(l.p+1)+", imagen "+(l.i+1)+"\n"+l.n:"No ha abierto ninguna imagen."}
+let pk=null;const fk=$("fake");
+fk.addEventListener("pointerdown",e=>{if(st.modo!=="man")return;clearTimeout(pk);pk=setTimeout(()=>{$("peek").textContent=peekText();$("peek").style.whiteSpace="pre-line";$("peek").style.display="block"},2000)});
+["pointerup","pointerleave","pointercancel"].forEach(v=>fk.addEventListener(v,()=>{clearTimeout(pk);$("peek").style.display="none"}));
+fk.addEventListener("contextmenu",e=>e.preventDefault());
+$("modo").value=st.modo;$("modo").onchange=e=>{st.modo=e.target.value;sv("md_modo",st.modo);try{speechSynthesis.cancel()}catch(x){}};
 $("sc").onclick=()=>{$("set").style.display="none"};
 $("vz").checked=st.voz;$("lang").value=st.lang;
 $("vz").onchange=e=>{st.voz=e.target.checked;sv("md_voz",st.voz?"1":"0")};
